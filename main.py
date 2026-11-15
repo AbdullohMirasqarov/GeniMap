@@ -401,7 +401,7 @@ async def ping_user(
         raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")
 
     delivered = await send_ping_message(
-        target_telegram_id=target.telegram_id,
+        target_tg_id=target.telegram_id,
         sender_name=user.full_name,
         web_app_url=WEBAPP_URL,
     )
