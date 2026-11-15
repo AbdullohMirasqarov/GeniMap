@@ -1,6 +1,7 @@
 # GeniMap Telegram Mini App — Python bog'liqliklari
 # O'rnatish: pip install -r requirements.txt
-# Talab: Python 3.11+
+# Talab: Python 3.11–3.13 (3.14 hozircha SQLAlchemy 2.0.37 bilan mos emas)
+# Render uchun versiya .python-version faylida qulflangan.
 
 # Web backend (FastAPI + ASGI server)
 fastapi==0.115.7
