@@ -8,8 +8,11 @@ Endpointlar:
     GET  /               — Mini App frontend (templates/index.html)
     POST /auth           — Telegram initData'ni HMAC-SHA256 bilan tekshirish
     POST /update_location— joriy foydalanuvchi lokatsiyasini yangilash
-    GET  /get_users      — barcha foydalanuvchilar ro'yxati
+    GET  /get_users      — ko'rinish (visibility) qoidasi bo'yicha foydalanuvchilar
     POST /ping_user      — boshqa foydalanuvchiga chaqiruv yuborish
+    POST /add_friend     — do'stlik so'rovini yuborish
+    POST /update_settings— maxfiylik (visibility) sozlamasini saqlash
+    GET  /get_friends    — qabul qilingan do'stlar ro'yxati
 """
 
 from __future__ import annotations
@@ -27,20 +30,25 @@ import urllib.parse
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any, Literal, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.orm import Session
 
-from bot import BOT_TOKEN, WEBAPP_URL, bot, dp, send_ping_message
+from bot import BOT_TOKEN, WEBAPP_URL, bot, dp, send_friend_request, send_ping_message
 from database import (
+    FRIENDSHIP_ACCEPTED,
     User,
-    get_all_users,
+    create_friend_request,
     get_db,
+    get_friend_ids,
+    get_friends,
     get_user_by_telegram_id,
+    get_visible_users,
     init_db,
+    set_user_visibility,
     update_user_location,
     upsert_user,
     utcnow,
@@ -191,9 +199,12 @@ def iso_utc(value: Optional[datetime]) -> Optional[str]:
     return value.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
-def serialize_user(user: User) -> dict[str, Any]:
-    """User modelini frontend uchun JSON lug'atga aylantiradi."""
-    return {
+def serialize_user(user: User, *, is_friend: Optional[bool] = None) -> dict[str, Any]:
+    """User modelini frontend uchun JSON lug'atga aylantiradi.
+
+    `is_friend` berilsa, javobga shu maydon ham qo'shiladi.
+    """
+    payload: dict[str, Any] = {
         "telegram_id": user.telegram_id,
         "full_name": user.full_name,
         "username": user.username,
@@ -202,7 +213,11 @@ def serialize_user(user: User) -> dict[str, Any]:
         "last_updated": iso_utc(user.last_updated),
         "is_ghost": bool(user.is_ghost),
         "avatar_url": user.avatar_url,
+        "visibility": user.visibility,
     }
+    if is_friend is not None:
+        payload["is_friend"] = bool(is_friend)
+    return payload
 
 
 def current_user(
@@ -253,6 +268,30 @@ class PingRequest(BaseModel):
     """POST /ping_user tanasi."""
 
     target_telegram_id: int = Field(gt=0, le=9_007_199_254_740_991)
+
+
+class AddFriendRequest(BaseModel):
+    """POST /add_friend tanasi (target_tg_id yoki target_telegram_id)."""
+
+    target_tg_id: int = Field(gt=0, le=9_007_199_254_740_991)
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_long_form(cls, data: Any) -> Any:
+        """`target_telegram_id` yuborilsa, uni `target_tg_id` ga ko'chiradi."""
+        if (
+            isinstance(data, dict)
+            and "target_tg_id" not in data
+            and "target_telegram_id" in data
+        ):
+            return {**data, "target_tg_id": data["target_telegram_id"]}
+        return data
+
+
+class SettingsUpdate(BaseModel):
+    """POST /update_settings tanasi: 'all' | 'friends' | 'none'."""
+
+    visibility: Literal["all", "friends", "none"]
 
 
 async def _run_bot_polling() -> None:
@@ -376,11 +415,21 @@ def get_users(
     user: Annotated[User, Depends(current_user)],
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    """Barcha foydalanuvchilarning lokatsiyasi va oxirgi onlayn vaqtini qaytaradi."""
-    users = [serialize_user(item) for item in get_all_users(db)]
+    """Simmetriya qoidasi bo'yicha ko'rinadigan foydalanuvchilarni qaytaradi.
+
+    Joriy foydalanuvchi `visibility='none'` bo'lsa — bo'sh ro'yxat qaytadi.
+    Har bir nishon faqat ikki tomon ham ruxsat berganda ro'yxatga tushadi.
+    """
+    friend_ids = get_friend_ids(db, user.telegram_id)
+    visible_users = get_visible_users(db, user)
+    users = [
+        serialize_user(item, is_friend=item.telegram_id in friend_ids)
+        for item in visible_users
+    ]
     return {
         "status": "ok",
         "server_time": iso_utc(utcnow()),
+        "visibility": user.visibility,
         "count": len(users),
         "users": users,
     }
@@ -414,6 +463,87 @@ async def ping_user(
         }
 
     return {"status": "ok", "delivered": True, "message": "Chaqiruv yuborildi"}
+
+
+@app.post("/add_friend")
+async def add_friend(
+    payload: AddFriendRequest,
+    user: Annotated[User, Depends(current_user)],
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Do'stlik so'rovini bazaga yozadi va bot orqali nishonga yuboradi."""
+    if payload.target_tg_id == user.telegram_id:
+        raise HTTPException(status_code=400, detail="O'zingizga do'stlik so'rovi yubora olmaysiz")
+
+    target = get_user_by_telegram_id(db, payload.target_tg_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Foydalanuvchi topilmadi")
+
+    friendship = create_friend_request(db, user.telegram_id, target.telegram_id)
+
+    if friendship.status == FRIENDSHIP_ACCEPTED:
+        return {
+            "status": "accepted",
+            "request_status": FRIENDSHIP_ACCEPTED,
+            "already_friends": True,
+            "delivered": False,
+            "message": "Siz allaqachon do'stlarsiz",
+        }
+
+    delivered = await send_friend_request(
+        target_tg_id=target.telegram_id,
+        sender_name=user.full_name,
+        sender_tg_id=user.telegram_id,
+    )
+
+    if not delivered:
+        return {
+            "status": "undelivered",
+            "request_status": friendship.status,
+            "already_friends": False,
+            "delivered": False,
+            "message": "So'rov bazaga yozildi, lekin xabar yetkazilmadi — foydalanuvchi botni bloklagan bo'lishi mumkin",
+        }
+
+    return {
+        "status": "ok",
+        "request_status": friendship.status,
+        "already_friends": False,
+        "delivered": True,
+        "message": "Do'stlik so'rovi yuborildi",
+    }
+
+
+@app.post("/update_settings")
+def update_settings(
+    payload: SettingsUpdate,
+    user: Annotated[User, Depends(current_user)],
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Foydalanuvchining `visibility` qiymatini yangilaydi."""
+    updated = set_user_visibility(db, user, payload.visibility)
+    logger.info("Maxfiylik yangilandi: %s → %s", updated.telegram_id, updated.visibility)
+    return {
+        "status": "ok",
+        "visibility": updated.visibility,
+        "user": serialize_user(updated),
+    }
+
+
+@app.get("/get_friends")
+def read_friends(
+    user: Annotated[User, Depends(current_user)],
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Joriy foydalanuvchining qabul qilingan do'stlari ro'yxatini qaytaradi."""
+    friends = get_friends(db, user.telegram_id)
+    payload = [serialize_user(friend, is_friend=True) for friend in friends]
+    return {
+        "status": "ok",
+        "server_time": iso_utc(utcnow()),
+        "count": len(payload),
+        "friends": payload,
+    }
 
 
 if __name__ == "__main__":

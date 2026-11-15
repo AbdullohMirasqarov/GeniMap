@@ -225,6 +225,19 @@
     <span>Sharpa Rejimi (Premium)</span>
   </button>
 
+  <div class="fixed bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] right-4 z-[550] flex flex-col items-center gap-3">
+    <button id="settings-btn" type="button"
+      class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-900/90 text-xl shadow-xl ring-1 ring-white/15 backdrop-blur-md transition active:scale-95"
+      aria-label="Maxfiylik sozlamalari" aria-haspopup="dialog" aria-controls="settings-modal">
+      ⚙️
+    </button>
+    <button id="friends-btn" type="button"
+      class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-900/90 text-xl shadow-xl ring-1 ring-white/15 backdrop-blur-md transition active:scale-95"
+      aria-label="Do'stlar ro'yxati" aria-haspopup="dialog" aria-controls="friends-modal">
+      👥
+    </button>
+  </div>
+
   <div id="sheet-backdrop" class="fixed inset-0 z-[600] hidden bg-black/50 opacity-0 transition-opacity duration-300">
   </div>
 
@@ -246,6 +259,11 @@
     <button id="ping-btn" type="button"
       class="mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3.5 text-base font-extrabold text-gray-950 shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] disabled:opacity-60">
       Qayerdasan? (Ping) 📣
+    </button>
+
+    <button id="friend-btn" type="button"
+      class="mt-5 hidden w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-sky-500 px-4 py-3.5 text-base font-extrabold text-white shadow-lg shadow-indigo-500/25 transition active:scale-[0.98] disabled:opacity-60">
+      ➕ Do'stlikka chorlash
     </button>
 
     <button id="sheet-close" type="button"
@@ -275,6 +293,69 @@
         class="mt-5 w-full rounded-2xl bg-white/10 px-4 py-3 text-sm font-bold text-white ring-1 ring-white/15 transition hover:bg-white/15 active:scale-[0.99]">
         Tushundim
       </button>
+    </div>
+  </div>
+
+  <div id="settings-modal"
+    class="fixed inset-0 z-[900] hidden items-center justify-center bg-black/70 p-5 backdrop-blur-sm" role="dialog"
+    aria-modal="true" aria-labelledby="settings-title">
+    <div class="w-full max-w-sm rounded-3xl bg-gray-900 p-6 shadow-2xl ring-1 ring-white/10">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="settings-title" class="text-lg font-extrabold text-white">⚙️ Maxfiylik</h2>
+          <p class="mt-1 text-xs leading-relaxed text-gray-400">Kim sizning joylashuvingizni xaritada ko'radi?</p>
+        </div>
+        <button id="settings-close" type="button" aria-label="Yopish"
+          class="rounded-full bg-white/10 px-2.5 py-1 text-sm font-bold text-gray-300 transition hover:bg-white/15 active:scale-95">
+          ✕
+        </button>
+      </div>
+
+      <div class="mt-5 space-y-2">
+        <label
+          class="visibility-option flex cursor-pointer items-center gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
+          <input type="radio" name="visibility" value="all" class="h-4 w-4 accent-indigo-500">
+          <span class="flex-1 text-sm font-semibold text-gray-100">Hammaga</span>
+          <span class="text-lg leading-none">🌍</span>
+        </label>
+        <label
+          class="visibility-option flex cursor-pointer items-center gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
+          <input type="radio" name="visibility" value="friends" class="h-4 w-4 accent-indigo-500">
+          <span class="flex-1 text-sm font-semibold text-gray-100">Faqat do'stlarga</span>
+          <span class="text-lg leading-none">🤝</span>
+        </label>
+        <label
+          class="visibility-option flex cursor-pointer items-center gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
+          <input type="radio" name="visibility" value="none" class="h-4 w-4 accent-indigo-500">
+          <span class="flex-1 text-sm font-semibold text-gray-100">Hech kimga</span>
+          <span class="text-lg leading-none">🚫</span>
+        </label>
+      </div>
+
+      <p id="settings-status" class="mt-3 min-h-[1rem] text-center text-xs font-medium text-gray-400"></p>
+    </div>
+  </div>
+
+  <div id="friends-modal"
+    class="fixed inset-0 z-[900] hidden items-center justify-center bg-black/70 p-5 backdrop-blur-sm" role="dialog"
+    aria-modal="true" aria-labelledby="friends-title">
+    <div class="flex max-h-[82vh] w-full max-w-md flex-col rounded-3xl bg-gray-900 p-5 shadow-2xl ring-1 ring-white/10">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="friends-title" class="text-lg font-extrabold text-white">👥 Do'stlar</h2>
+          <p id="friends-count" class="mt-1 text-xs text-gray-400">Do'stlar yuklanmoqda…</p>
+        </div>
+        <button id="friends-close" type="button" aria-label="Yopish"
+          class="rounded-full bg-white/10 px-2.5 py-1 text-sm font-bold text-gray-300 transition hover:bg-white/15 active:scale-95">
+          ✕
+        </button>
+      </div>
+
+      <input id="friends-search" type="search" placeholder="Do'st qidirish…" autocomplete="off"
+        class="mt-4 w-full rounded-xl bg-white/5 px-3.5 py-2.5 text-sm font-medium text-white placeholder-gray-500 ring-1 ring-white/10 outline-none focus:ring-2 focus:ring-indigo-400/60">
+
+      <p id="friends-empty" class="mt-4 text-center text-sm font-medium text-gray-400">Do'stlar yuklanmoqda…</p>
+      <ul id="friends-list" class="no-scrollbar mt-3 -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-1"></ul>
     </div>
   </div>
 
@@ -311,7 +392,10 @@
         auth: "/auth",
         updateLocation: "/update_location",
         users: "/get_users",
-        ping: "/ping_user"
+        ping: "/ping_user",
+        addFriend: "/add_friend",
+        updateSettings: "/update_settings",
+        friends: "/get_friends"
       };
 
       var RING = {
@@ -331,7 +415,11 @@
         sheetUser: null,
         centered: false,
         timers: [],
-        toastOnceKeys: new Set()
+        toastOnceKeys: new Set(),
+        friends: [],
+        friendsLoaded: false,
+        sentRequests: new Set(),
+        friendRequestPending: false
       };
 
       var el = {
@@ -348,6 +436,18 @@
         sheetLastSeen: document.getElementById("sheet-last-seen"),
         sheetClose: document.getElementById("sheet-close"),
         pingButton: document.getElementById("ping-btn"),
+        friendButton: document.getElementById("friend-btn"),
+        settingsButton: document.getElementById("settings-btn"),
+        settingsModal: document.getElementById("settings-modal"),
+        settingsClose: document.getElementById("settings-close"),
+        settingsStatus: document.getElementById("settings-status"),
+        friendsButton: document.getElementById("friends-btn"),
+        friendsModal: document.getElementById("friends-modal"),
+        friendsClose: document.getElementById("friends-close"),
+        friendsSearch: document.getElementById("friends-search"),
+        friendsList: document.getElementById("friends-list"),
+        friendsEmpty: document.getElementById("friends-empty"),
+        friendsCount: document.getElementById("friends-count"),
         toasts: document.getElementById("toasts"),
         bootOverlay: document.getElementById("boot-overlay"),
         fatalOverlay: document.getElementById("fatal-overlay"),
@@ -651,6 +751,13 @@
         el.sheetUsername.textContent = user.username ? "@" + user.username : "Username ko'rsatilmagan";
         el.sheetLastSeen.textContent = "Oxirgi marta: " + formatLastSeen(user.last_updated) +
           (user.is_ghost ? " · 👻 sharpa rejimida" : "");
+
+        var isFriend = Boolean(user.is_friend);
+        el.pingButton.classList.toggle("hidden", !isFriend);
+        el.friendButton.classList.toggle("hidden", isFriend);
+        if (!isFriend) {
+          updateFriendButton();
+        }
       }
 
       function openSheet(user) {
@@ -826,6 +933,10 @@
           var data = await response.json().catch(function () {
             return {};
           });
+          if (data.visibility && state.me) {
+            state.me.visibility = data.visibility;
+            renderVisibilityOptions();
+          }
           renderUsers(Array.isArray(data.users) ? data.users : []);
         } catch (error) {
           console.error("get_users", error);
@@ -874,6 +985,249 @@
         }
       }
 
+      function updateFriendButton() {
+        var user = state.sheetUser;
+        if (!user) {
+          return;
+        }
+        if (state.friendRequestPending) {
+          el.friendButton.disabled = true;
+          el.friendButton.textContent = "Yuborilmoqda…";
+          return;
+        }
+        var sent = state.sentRequests.has(user.telegram_id);
+        el.friendButton.disabled = sent;
+        el.friendButton.textContent = sent ? "So'rov yuborildi ✅" : "➕ Do'stlikka chorlash";
+      }
+
+      async function sendFriendRequest() {
+        var target = state.sheetUser;
+        if (!target || state.friendRequestPending) {
+          return;
+        }
+
+        state.friendRequestPending = true;
+        updateFriendButton();
+
+        try {
+          var response = await apiFetch(API.addFriend, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ target_tg_id: target.telegram_id })
+          });
+          var data = await response.json().catch(function () {
+            return {};
+          });
+
+          if (!response.ok) {
+            toast(typeof data.detail === "string" ? data.detail : "So'rov yuborilmadi", "error");
+            haptic("error");
+            return;
+          }
+
+          if (data.already_friends || data.request_status === "accepted") {
+            target.is_friend = true;
+            toast("Siz allaqachon do'stlarsiz ✅");
+            haptic("success");
+            closeSheet();
+            refreshUsers();
+            refreshFriends();
+            return;
+          }
+
+          state.sentRequests.add(target.telegram_id);
+          if (data.delivered === false) {
+            toast("So'rov saqlandi, lekin xabar yetkazilmadi — foydalanuvchi botni bloklagan bo'lishi mumkin", "error");
+            haptic("warning");
+          } else {
+            toast("Do'stlik so'rovi yuborildi ✅");
+            haptic("success");
+          }
+        } catch (error) {
+          console.error("add_friend", error);
+          toast("Tarmoq xatosi. Qayta urinib ko'ring", "error");
+        } finally {
+          state.friendRequestPending = false;
+          updateFriendButton();
+        }
+      }
+
+      function renderVisibilityOptions() {
+        var current = state.me && state.me.visibility ? state.me.visibility : "all";
+        var inputs = document.querySelectorAll('input[name="visibility"]');
+        Array.prototype.forEach.call(inputs, function (input) {
+          var active = input.value === current;
+          input.checked = active;
+          var label = input.closest ? input.closest("label") : null;
+          if (!label) {
+            return;
+          }
+          label.classList.toggle("bg-indigo-500/20", active);
+          label.classList.toggle("ring-indigo-400/40", active);
+          label.classList.toggle("bg-white/5", !active);
+          label.classList.toggle("ring-white/5", !active);
+        });
+      }
+
+      function openSettingsModal() {
+        renderVisibilityOptions();
+        el.settingsStatus.textContent = "";
+        el.settingsModal.classList.remove("hidden");
+        el.settingsModal.classList.add("flex");
+        haptic("light");
+      }
+
+      function closeSettingsModal() {
+        el.settingsModal.classList.add("hidden");
+        el.settingsModal.classList.remove("flex");
+      }
+
+      async function saveVisibility(value) {
+        var previous = state.me && state.me.visibility ? state.me.visibility : "all";
+        if (value === previous) {
+          return;
+        }
+
+        state.me = state.me || {};
+        state.me.visibility = value;
+        renderVisibilityOptions();
+        el.settingsStatus.textContent = "Saqlanmoqda…";
+
+        try {
+          var response = await apiFetch(API.updateSettings, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ visibility: value })
+          });
+          var data = await response.json().catch(function () {
+            return {};
+          });
+
+          if (!response.ok) {
+            state.me.visibility = previous;
+            renderVisibilityOptions();
+            el.settingsStatus.textContent = "Saqlab bo'lmadi";
+            toast(typeof data.detail === "string" ? data.detail : "Sozlamani saqlab bo'lmadi", "error");
+            haptic("error");
+            return;
+          }
+
+          state.me.visibility = data.visibility || value;
+          renderVisibilityOptions();
+          el.settingsStatus.textContent = "Saqlandi ✅";
+          haptic("success");
+          refreshUsers();
+        } catch (error) {
+          console.error("update_settings", error);
+          state.me.visibility = previous;
+          renderVisibilityOptions();
+          el.settingsStatus.textContent = "Tarmoq xatosi";
+          toast("Sozlamani saqlab bo'lmadi", "error");
+        }
+      }
+
+      function openFriendsModal() {
+        el.friendsSearch.value = "";
+        renderFriends();
+        el.friendsModal.classList.remove("hidden");
+        el.friendsModal.classList.add("flex");
+        haptic("light");
+        refreshFriends();
+      }
+
+      function closeFriendsModal() {
+        el.friendsModal.classList.add("hidden");
+        el.friendsModal.classList.remove("flex");
+      }
+
+      async function refreshFriends() {
+        if (!state.token) {
+          return;
+        }
+        try {
+          var response = await apiFetch(API.friends);
+          if (!response.ok) {
+            if (response.status !== 401) {
+              toastOnce("friends-error", "Do'stlar ro'yxatini yuklab bo'lmadi", "error");
+            }
+            return;
+          }
+          var data = await response.json().catch(function () {
+            return {};
+          });
+          state.friends = Array.isArray(data.friends) ? data.friends : [];
+          state.friendsLoaded = true;
+          renderFriends();
+        } catch (error) {
+          console.error("get_friends", error);
+        }
+      }
+
+      function friendItemHtml(friend) {
+        var hasLocation = typeof friend.lat === "number" && typeof friend.lng === "number";
+        var meta = friend.username ? "@" + friend.username : "Oxirgi marta: " + formatLastSeen(friend.last_updated);
+        return '<li class="flex items-center gap-3 rounded-2xl bg-white/5 p-2.5 ring-1 ring-white/5">' +
+          '<img src="' + escapeHtml(avatarFor(friend)) + '" alt="" class="h-10 w-10 shrink-0 rounded-full bg-gray-800 object-cover">' +
+          '<div class="min-w-0 flex-1">' +
+          '<p class="truncate text-sm font-bold text-white">' + escapeHtml(friend.full_name || "GeniMap foydalanuvchisi") + '</p>' +
+          '<p class="truncate text-[11px] font-medium text-gray-400">' + escapeHtml(meta) + '</p>' +
+          '</div>' +
+          '<button type="button" data-friend-id="' + escapeHtml(friend.telegram_id) + '" ' + (hasLocation ? "" : "disabled ") +
+          'class="locate-friend shrink-0 rounded-xl bg-indigo-500/20 px-3 py-2 text-xs font-bold text-indigo-200 ring-1 ring-indigo-400/30 transition active:scale-95 disabled:opacity-40" aria-label="Xaritadan topish">📍</button>' +
+          '</li>';
+      }
+
+      function renderFriends() {
+        var query = el.friendsSearch.value.trim().toLowerCase();
+        var filtered = state.friends.filter(function (friend) {
+          if (!query) {
+            return true;
+          }
+          var haystack = (String(friend.full_name || "") + " " + String(friend.username || "")).toLowerCase();
+          return haystack.indexOf(query) !== -1;
+        });
+
+        el.friendsList.innerHTML = filtered.map(friendItemHtml).join("");
+        el.friendsCount.textContent = state.friendsLoaded
+          ? state.friends.length + " do'st"
+          : "Do'stlar yuklanmoqda…";
+
+        if (filtered.length === 0) {
+          if (!state.friendsLoaded) {
+            el.friendsEmpty.textContent = "Do'stlar yuklanmoqda…";
+          } else {
+            el.friendsEmpty.textContent = state.friends.length === 0
+              ? "Hali do'stlaringiz yo'q. Xaritadagi markerni bosib do'stlik taklif qiling."
+              : "Qidiruv bo'yicha hech kim topilmadi.";
+          }
+          el.friendsEmpty.classList.remove("hidden");
+        } else {
+          el.friendsEmpty.classList.add("hidden");
+        }
+      }
+
+      function flyToFriend(telegramId) {
+        var friend = state.friends.filter(function (item) {
+          return String(item.telegram_id) === String(telegramId);
+        })[0];
+
+        if (!friend) {
+          return;
+        }
+        if (typeof friend.lat !== "number" || typeof friend.lng !== "number") {
+          toast("Bu do'stingiz hali joylashuvini yubormagan", "error");
+          return;
+        }
+
+        closeFriendsModal();
+        closeSheet();
+        if (state.map) {
+          state.map.flyTo([friend.lat, friend.lng], 16, { duration: 0.9 });
+        }
+        haptic("medium");
+        toast((friend.full_name || "Do'stingiz") + " joylashuviga uchib borildi 📍");
+      }
+
       function handleVisibilityChange() {
         if (document.visibilityState !== "visible") {
           return;
@@ -886,11 +1240,44 @@
         el.sheetClose.addEventListener("click", closeSheet);
         el.sheetBackdrop.addEventListener("click", closeSheet);
         el.pingButton.addEventListener("click", sendPing);
+        el.friendButton.addEventListener("click", sendFriendRequest);
         el.ghostButton.addEventListener("click", openGhostModal);
         el.ghostClose.addEventListener("click", closeGhostModal);
         el.ghostModal.addEventListener("click", function (event) {
           if (event.target === el.ghostModal) {
             closeGhostModal();
+          }
+        });
+
+        el.settingsButton.addEventListener("click", openSettingsModal);
+        el.settingsClose.addEventListener("click", closeSettingsModal);
+        el.settingsModal.addEventListener("click", function (event) {
+          if (event.target === el.settingsModal) {
+            closeSettingsModal();
+          }
+        });
+
+        Array.prototype.forEach.call(document.querySelectorAll('input[name="visibility"]'), function (input) {
+          input.addEventListener("change", function () {
+            if (input.checked) {
+              saveVisibility(input.value);
+            }
+          });
+        });
+
+        el.friendsButton.addEventListener("click", openFriendsModal);
+        el.friendsClose.addEventListener("click", closeFriendsModal);
+        el.friendsSearch.addEventListener("input", renderFriends);
+        el.friendsList.addEventListener("click", function (event) {
+          var button = event.target.closest ? event.target.closest("[data-friend-id]") : null;
+          if (!button) {
+            return;
+          }
+          flyToFriend(button.getAttribute("data-friend-id"));
+        });
+        el.friendsModal.addEventListener("click", function (event) {
+          if (event.target === el.friendsModal) {
+            closeFriendsModal();
           }
         });
 
@@ -900,6 +1287,8 @@
           }
           closeSheet();
           closeGhostModal();
+          closeSettingsModal();
+          closeFriendsModal();
         });
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -957,6 +1346,7 @@
 
         requestLocation();
         refreshUsers();
+        refreshFriends();
 
         state.timers.push(window.setInterval(requestLocation, 30000));
         state.timers.push(window.setInterval(refreshUsers, 15000));
