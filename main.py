@@ -11,6 +11,9 @@ Endpointlar:
     GET  /get_users      — ko'rinish (visibility) qoidasi bo'yicha foydalanuvchilar
     POST /ping_user      — boshqa foydalanuvchiga chaqiruv yuborish
     POST /add_friend     — do'stlik so'rovini yuborish
+    GET  /get_requests   — kelgan (pending) do'stlik so'rovlari
+    POST /accept_friend  — kelgan so'rovni qabul qilish
+    POST /decline_friend — kelgan so'rovni rad etish
     POST /update_settings— maxfiylik (visibility) sozlamasini saqlash
     GET  /get_friends    — qabul qilingan do'stlar ro'yxati
 """
@@ -41,10 +44,13 @@ from bot import BOT_TOKEN, WEBAPP_URL, bot, dp, send_friend_request, send_ping_m
 from database import (
     FRIENDSHIP_ACCEPTED,
     User,
+    accept_friend_request,
     create_friend_request,
+    decline_friend_request,
     get_db,
     get_friend_ids,
     get_friends,
+    get_incoming_requests,
     get_user_by_telegram_id,
     get_visible_users,
     init_db,
@@ -220,6 +226,20 @@ def serialize_user(user: User, *, is_friend: Optional[bool] = None) -> dict[str,
     return payload
 
 
+def serialize_profile(user: User) -> dict[str, Any]:
+    """Faqat ochiq profil maydonlarini qaytaradi (koordinatalarsiz).
+
+    Hali do'st bo'lmagan so'rovchining joylashuvi oshkor bo'lmasligi uchun
+    kelgan so'rovlar va qabul javobida shu serializer ishlatiladi.
+    """
+    return {
+        "telegram_id": user.telegram_id,
+        "full_name": user.full_name,
+        "username": user.username,
+        "avatar_url": user.avatar_url,
+    }
+
+
 def current_user(
     authorization: Annotated[Optional[str], Header()] = None,
     db: Session = Depends(get_db),
@@ -285,6 +305,26 @@ class AddFriendRequest(BaseModel):
             and "target_telegram_id" in data
         ):
             return {**data, "target_tg_id": data["target_telegram_id"]}
+        return data
+
+
+class FriendRequestReply(BaseModel):
+    """POST /accept_friend va /decline_friend tanasi.
+
+    So'rovni yuborgan foydalanuvchining Telegram ID'si. Qulaylik uchun
+    `sender_telegram_id`, `from_tg_id`, `from_telegram_id` ham qabul qilinadi.
+    """
+
+    sender_tg_id: int = Field(gt=0, le=9_007_199_254_740_991)
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_long_form(cls, data: Any) -> Any:
+        """Uzun nomli maydonlarni `sender_tg_id` ga ko'chiradi."""
+        if isinstance(data, dict) and "sender_tg_id" not in data:
+            for key in ("sender_telegram_id", "from_tg_id", "from_telegram_id"):
+                if key in data:
+                    return {**data, "sender_tg_id": data[key]}
         return data
 
 
@@ -512,6 +552,63 @@ async def add_friend(
         "delivered": True,
         "message": "Do'stlik so'rovi yuborildi",
     }
+
+
+@app.get("/get_requests")
+def read_requests(
+    user: Annotated[User, Depends(current_user)],
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Joriy foydalanuvchiga kelgan, hali qabul qilinmagan so'rovlarni qaytaradi."""
+    senders = get_incoming_requests(db, user.telegram_id)
+    payload = [serialize_profile(sender) for sender in senders]
+    return {
+        "status": "ok",
+        "server_time": iso_utc(utcnow()),
+        "count": len(payload),
+        "requests": payload,
+    }
+
+
+@app.post("/accept_friend")
+def accept_friend(
+    payload: FriendRequestReply,
+    user: Annotated[User, Depends(current_user)],
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Kelgan do'stlik so'rovini qabul qiladi (botdagi tugma bilan bir xil natija)."""
+    if payload.sender_tg_id == user.telegram_id:
+        raise HTTPException(status_code=400, detail="O'zingizning so'rovingizni qabul qila olmaysiz")
+
+    if not accept_friend_request(db, payload.sender_tg_id, user.telegram_id):
+        raise HTTPException(
+            status_code=404,
+            detail="So'rov topilmadi — u allaqachon qabul qilingan yoki bekor qilingan",
+        )
+
+    sender = get_user_by_telegram_id(db, payload.sender_tg_id)
+    logger.info("Do'stlik qabul qilindi (API): %s ← %s", user.telegram_id, payload.sender_tg_id)
+    return {
+        "status": "ok",
+        "friend": serialize_profile(sender) if sender else None,
+        "message": "Endi siz do'stsiz — xaritada bir-biringizni ko'rasiz",
+    }
+
+
+@app.post("/decline_friend")
+def decline_friend(
+    payload: FriendRequestReply,
+    user: Annotated[User, Depends(current_user)],
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    """Kelgan do'stlik so'rovini rad etadi va yozuvni o'chiradi."""
+    if not decline_friend_request(db, payload.sender_tg_id, user.telegram_id):
+        raise HTTPException(
+            status_code=404,
+            detail="So'rov topilmadi — u allaqachon qabul qilingan yoki bekor qilingan",
+        )
+
+    return {"status": "ok", "message": "So'rov rad etildi"}
 
 
 @app.post("/update_settings")

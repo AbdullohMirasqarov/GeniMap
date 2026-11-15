@@ -206,7 +206,7 @@
         <span class="text-2xl leading-none">📍</span>
         <div>
           <p class="text-sm font-extrabold leading-none tracking-tight">GeniMap</p>
-          <p id="online-count" class="mt-1 text-[11px] font-medium leading-none text-gray-400">Do'stlar yuklanmoqda…</p>
+          <p id="online-count" class="mt-1 text-[11px] font-medium leading-none text-gray-400">Atrofingiz ko'rilmoqda…</p>
         </div>
       </div>
 
@@ -232,9 +232,11 @@
       ⚙️
     </button>
     <button id="friends-btn" type="button"
-      class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-900/90 text-xl shadow-xl ring-1 ring-white/15 backdrop-blur-md transition active:scale-95"
+      class="relative flex h-12 w-12 items-center justify-center rounded-full bg-gray-900/90 text-xl shadow-xl ring-1 ring-white/15 backdrop-blur-md transition active:scale-95"
       aria-label="Do'stlar ro'yxati" aria-haspopup="dialog" aria-controls="friends-modal">
       👥
+      <span id="requests-badge"
+        class="absolute -right-1 -top-1 hidden min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[11px] font-extrabold leading-none text-white shadow-lg ring-2 ring-gray-950">0</span>
     </button>
   </div>
 
@@ -282,7 +284,8 @@
         Sharpa Rejimi <span class="text-purple-300">(Premium)</span>
       </h2>
       <p class="mt-3 text-center text-sm leading-relaxed text-gray-300">
-        Tez orada! Lokatsiyangizni yashirib, boshqalarni ko'rish funksiyasi tez orada ishga tushadi.
+        Tez orada 🚀 Xaritada ko'rinmasdan do'stlaringizni kuzatish imkoniyati. Hozircha
+        <span class="font-semibold text-purple-200">Hech kimga</span> rejimini sinab ko'ring.
       </p>
       <div class="mt-5 space-y-2 rounded-2xl bg-black/25 p-3 text-xs text-purple-200/90 ring-1 ring-white/5">
         <p class="flex items-center gap-2"><span>🫥</span> Xaritada ko'rinmaslik</p>
@@ -299,11 +302,11 @@
   <div id="settings-modal"
     class="fixed inset-0 z-[900] hidden items-center justify-center bg-black/70 p-5 backdrop-blur-sm" role="dialog"
     aria-modal="true" aria-labelledby="settings-title">
-    <div class="w-full max-w-sm rounded-3xl bg-gray-900 p-6 shadow-2xl ring-1 ring-white/10">
+    <div class="no-scrollbar max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-3xl bg-gray-900 p-6 shadow-2xl ring-1 ring-white/10">
       <div class="flex items-start justify-between gap-3">
         <div>
           <h2 id="settings-title" class="text-lg font-extrabold text-white">⚙️ Maxfiylik</h2>
-          <p class="mt-1 text-xs leading-relaxed text-gray-400">Kim sizning joylashuvingizni xaritada ko'radi?</p>
+          <p class="mt-1 text-xs leading-relaxed text-gray-400">Kim sizni xaritada ko'rishini o'zingiz hal qilasiz 👇</p>
         </div>
         <button id="settings-close" type="button" aria-label="Yopish"
           class="rounded-full bg-white/10 px-2.5 py-1 text-sm font-bold text-gray-300 transition hover:bg-white/15 active:scale-95">
@@ -313,26 +316,33 @@
 
       <div class="mt-5 space-y-2">
         <label
-          class="visibility-option flex cursor-pointer items-center gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
-          <input type="radio" name="visibility" value="all" class="h-4 w-4 accent-indigo-500">
-          <span class="flex-1 text-sm font-semibold text-gray-100">Hammaga</span>
-          <span class="text-lg leading-none">🌍</span>
+          class="visibility-option flex cursor-pointer items-start gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
+          <input type="radio" name="visibility" value="all" class="mt-0.5 h-4 w-4 shrink-0 accent-indigo-500">
+          <span class="min-w-0 flex-1">
+            <span class="block text-sm font-semibold text-gray-100">Hammaga 🌍</span>
+            <span class="mt-1 block text-sm font-normal leading-snug text-gray-400">Sizni hamma ko'radi. Siz ham barcha foydalanuvchilarni ko'ra olasiz.</span>
+          </span>
         </label>
         <label
-          class="visibility-option flex cursor-pointer items-center gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
-          <input type="radio" name="visibility" value="friends" class="h-4 w-4 accent-indigo-500">
-          <span class="flex-1 text-sm font-semibold text-gray-100">Faqat do'stlarga</span>
-          <span class="text-lg leading-none">🤝</span>
+          class="visibility-option flex cursor-pointer items-start gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
+          <input type="radio" name="visibility" value="friends" class="mt-0.5 h-4 w-4 shrink-0 accent-indigo-500">
+          <span class="min-w-0 flex-1">
+            <span class="block text-sm font-semibold text-gray-100">Faqat do'stlarga 🤝</span>
+            <span class="mt-1 block text-sm font-normal leading-snug text-gray-400">Faqat tasdiqlangan do'stlaringiz ko'radi. Siz ham faqat ularni ko'rasiz.</span>
+          </span>
         </label>
         <label
-          class="visibility-option flex cursor-pointer items-center gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
-          <input type="radio" name="visibility" value="none" class="h-4 w-4 accent-indigo-500">
-          <span class="flex-1 text-sm font-semibold text-gray-100">Hech kimga</span>
-          <span class="text-lg leading-none">🚫</span>
+          class="visibility-option flex cursor-pointer items-start gap-3 rounded-2xl bg-white/5 p-3.5 ring-1 ring-white/5 transition">
+          <input type="radio" name="visibility" value="none" class="mt-0.5 h-4 w-4 shrink-0 accent-indigo-500">
+          <span class="min-w-0 flex-1">
+            <span class="block text-sm font-semibold text-gray-100">Hech kimga 🚫</span>
+            <span class="mt-1 block text-sm font-normal leading-snug text-gray-400">Siz xaritadan yo'qolasiz. Lekin siz ham hech kimni ko'ra olmaysiz (Sharpa rejimi tez orada).</span>
+          </span>
         </label>
       </div>
 
-      <p id="settings-status" class="mt-3 min-h-[1rem] text-center text-xs font-medium text-gray-400"></p>
+      <p class="mt-3 text-center text-[11px] font-medium text-gray-500">Tanlov darhol saqlanadi — xaritani yangilash shart emas.</p>
+      <p id="settings-status" class="mt-1 min-h-[1rem] text-center text-xs font-medium text-gray-400"></p>
     </div>
   </div>
 
@@ -351,11 +361,69 @@
         </button>
       </div>
 
-      <input id="friends-search" type="search" placeholder="Do'st qidirish…" autocomplete="off"
+      <div id="requests-section" class="mt-4 hidden rounded-2xl bg-indigo-500/10 p-3 ring-1 ring-indigo-400/25">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-[11px] font-extrabold uppercase tracking-wide text-indigo-200">🔔 Kelgan so'rovlar</p>
+          <span id="requests-count"
+            class="rounded-full bg-indigo-500/25 px-2 py-0.5 text-[11px] font-bold text-indigo-100">0</span>
+        </div>
+        <p class="mt-1 text-[11px] leading-snug text-indigo-200/70">Qabul qilsangiz, xaritada bir-biringizni ko'rasiz.</p>
+        <ul id="requests-list" class="no-scrollbar mt-2 max-h-44 space-y-2 overflow-y-auto"></ul>
+      </div>
+
+      <input id="friends-search" type="search" placeholder="Ism yoki username bo'yicha qidirish…" autocomplete="off"
         class="mt-4 w-full rounded-xl bg-white/5 px-3.5 py-2.5 text-sm font-medium text-white placeholder-gray-500 ring-1 ring-white/10 outline-none focus:ring-2 focus:ring-indigo-400/60">
 
       <p id="friends-empty" class="mt-4 text-center text-sm font-medium text-gray-400">Do'stlar yuklanmoqda…</p>
       <ul id="friends-list" class="no-scrollbar mt-3 -mx-1 flex-1 space-y-2 overflow-y-auto px-1 pb-1"></ul>
+    </div>
+  </div>
+
+  <div id="empty-card"
+    class="fixed left-1/2 top-1/2 z-[450] hidden w-[min(90vw,22rem)] -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-gray-900/95 p-5 text-center shadow-2xl ring-1 ring-white/10 backdrop-blur-md"
+    role="dialog" aria-labelledby="empty-title">
+    <div id="empty-emoji" class="text-4xl leading-none">🌍</div>
+    <h2 id="empty-title" class="mt-3 text-base font-extrabold text-white"></h2>
+    <p id="empty-text" class="mt-2 text-sm leading-relaxed text-gray-300"></p>
+    <ul id="empty-steps" class="mt-4 space-y-2 text-left"></ul>
+    <div class="mt-4 flex gap-2">
+      <button id="empty-friends" type="button"
+        class="flex-1 rounded-2xl bg-gradient-to-r from-indigo-500 to-sky-500 px-3 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-indigo-500/20 transition active:scale-[0.98]">
+        👥 Do'stlar
+      </button>
+      <button id="empty-settings" type="button"
+        class="flex-1 rounded-2xl bg-white/10 px-3 py-2.5 text-sm font-bold text-gray-200 ring-1 ring-white/15 transition hover:bg-white/15 active:scale-[0.98]">
+        ⚙️ Maxfiylik
+      </button>
+    </div>
+    <button id="empty-close" type="button"
+      class="mt-2 w-full rounded-xl px-3 py-2 text-xs font-semibold text-gray-500 transition hover:text-gray-300 active:scale-[0.99]">
+      Xaritani ko'rish
+    </button>
+  </div>
+
+  <div id="onboarding"
+    class="fixed inset-0 z-[1050] hidden overflow-y-auto bg-gray-950/95 px-5 backdrop-blur-md"
+    role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+    <div
+      class="mx-auto flex min-h-full w-full max-w-sm flex-col justify-center py-[calc(env(safe-area-inset-top)+1.5rem)] pb-6">
+      <div class="flex items-center justify-between gap-3">
+        <span class="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-gray-300">GeniMap'ga xush
+          kelibsiz</span>
+        <button id="onboarding-skip" type="button"
+          class="text-xs font-semibold text-gray-400 transition hover:text-gray-200 active:scale-95">
+          O'tkazib yuborish
+        </button>
+      </div>
+      <div id="onboarding-emoji" class="mt-8 text-6xl leading-none">🗺</div>
+      <h2 id="onboarding-title" class="mt-5 text-2xl font-extrabold leading-tight text-white"></h2>
+      <p id="onboarding-text" class="mt-3 text-sm leading-relaxed text-gray-300"></p>
+      <ul id="onboarding-points" class="mt-5 space-y-2.5 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10"></ul>
+      <div id="onboarding-dots" class="mt-6 flex items-center justify-center gap-1.5"></div>
+      <button id="onboarding-next" type="button"
+        class="mt-5 w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-sky-500 px-4 py-3.5 text-base font-extrabold text-white shadow-lg shadow-indigo-500/25 transition active:scale-[0.98]">
+        Keyingi
+      </button>
     </div>
   </div>
 
@@ -395,7 +463,10 @@
         ping: "/ping_user",
         addFriend: "/add_friend",
         updateSettings: "/update_settings",
-        friends: "/get_friends"
+        friends: "/get_friends",
+        requests: "/get_requests",
+        acceptFriend: "/accept_friend",
+        declineFriend: "/decline_friend"
       };
 
       var RING = {
@@ -418,6 +489,12 @@
         toastOnceKeys: new Set(),
         friends: [],
         friendsLoaded: false,
+        requests: [],
+        requestsLoaded: false,
+        requestBusy: new Set(),
+        usersLoaded: false,
+        visibleOthers: 0,
+        emptyDismissed: false,
         sentRequests: new Set(),
         friendRequestPending: false
       };
@@ -448,6 +525,26 @@
         friendsList: document.getElementById("friends-list"),
         friendsEmpty: document.getElementById("friends-empty"),
         friendsCount: document.getElementById("friends-count"),
+        requestsBadge: document.getElementById("requests-badge"),
+        requestsSection: document.getElementById("requests-section"),
+        requestsList: document.getElementById("requests-list"),
+        requestsCount: document.getElementById("requests-count"),
+        emptyCard: document.getElementById("empty-card"),
+        emptyEmoji: document.getElementById("empty-emoji"),
+        emptyTitle: document.getElementById("empty-title"),
+        emptyText: document.getElementById("empty-text"),
+        emptySteps: document.getElementById("empty-steps"),
+        emptyFriends: document.getElementById("empty-friends"),
+        emptySettings: document.getElementById("empty-settings"),
+        emptyClose: document.getElementById("empty-close"),
+        onboarding: document.getElementById("onboarding"),
+        onboardingEmoji: document.getElementById("onboarding-emoji"),
+        onboardingTitle: document.getElementById("onboarding-title"),
+        onboardingText: document.getElementById("onboarding-text"),
+        onboardingPoints: document.getElementById("onboarding-points"),
+        onboardingDots: document.getElementById("onboarding-dots"),
+        onboardingSkip: document.getElementById("onboarding-skip"),
+        onboardingNext: document.getElementById("onboarding-next"),
         toasts: document.getElementById("toasts"),
         bootOverlay: document.getElementById("boot-overlay"),
         fatalOverlay: document.getElementById("fatal-overlay"),
@@ -675,10 +772,10 @@
 
       function updateOnlineLabel(onlineCount, locatedCount) {
         if (locatedCount === 0) {
-          el.onlineCount.textContent = "Atrofingizda hali hech kim yo'q";
+          el.onlineCount.textContent = "Hozircha hech kim ko'rinmayapti";
           return;
         }
-        el.onlineCount.textContent = onlineCount + " onlayn · " + locatedCount + " do'st";
+        el.onlineCount.textContent = onlineCount + " onlayn · " + locatedCount + " kishi xaritada";
       }
 
       function renderUsers(users) {
@@ -748,7 +845,7 @@
         el.sheetAvatar.alt = user.full_name || "Foydalanuvchi";
         el.sheetAvatar.className = "h-16 w-16 shrink-0 rounded-full border-4 bg-gray-800 object-cover " + (RING[status] || RING.old);
         el.sheetName.textContent = user.full_name || "GeniMap foydalanuvchisi";
-        el.sheetUsername.textContent = user.username ? "@" + user.username : "Username ko'rsatilmagan";
+        el.sheetUsername.textContent = user.username ? "@" + user.username : "Telegram username yo'q";
         el.sheetLastSeen.textContent = "Oxirgi marta: " + formatLastSeen(user.last_updated) +
           (user.is_ghost ? " · 👻 sharpa rejimida" : "");
 
@@ -803,7 +900,7 @@
 
         if (!initData) {
           if (!silent) {
-            showFatal("Bu sahifa faqat Telegram ichida ishlaydi. Iltimos, Mini App'ni botdagi “Xaritani ochish” tugmasi orqali oching.");
+            showFatal("Bu sahifa faqat Telegram ichida ishlaydi. Mini App'ni botdagi “Xaritani ochish 🗺” tugmasi orqali oching.");
           }
           return false;
         }
@@ -820,7 +917,7 @@
 
           if (!response.ok || !data.token) {
             if (!silent) {
-              var detail = typeof data.detail === "string" ? data.detail : "Avtorizatsiyadan o'tib bo'lmadi. Qaytadan urinib ko'ring.";
+              var detail = typeof data.detail === "string" ? data.detail : "Kirish amalga oshmadi. Mini App'ni qaytadan ochib ko'ring.";
               showFatal(detail);
             }
             return false;
@@ -832,7 +929,7 @@
         } catch (error) {
           console.error("auth", error);
           if (!silent) {
-            showFatal("Serverga ulanib bo'lmadi. Internet aloqasini tekshirib, qayta urinib ko'ring.");
+            showFatal("Serverga ulanib bo'lmadi. Internetni tekshirib, qaytadan urinib ko'ring 📡");
           }
           return false;
         }
@@ -866,7 +963,7 @@
           return;
         }
         if (!navigator.geolocation) {
-          toastOnce("no-geo", "Qurilmangiz geolokatsiyani qo'llab-quvvatlamaydi", "error");
+          toastOnce("no-geo", "Qurilmangiz geolokatsiyani qo'llab-quvvatlamaydi 😕", "error");
           return;
         }
         navigator.geolocation.getCurrentPosition(handlePosition, handleLocationError, {
@@ -898,7 +995,7 @@
           });
 
           if (data.status === "ignored") {
-            toastOnce("ghost-ignore", "Sharpa rejimi yoqilgan — joylashuv saqlanmadi 👻");
+            toastOnce("ghost-ignore", "Sharpa rejimi yoqilgan — joylashuvingiz saqlanmadi 👻");
           }
         } catch (error) {
           console.error("update_location", error);
@@ -907,13 +1004,13 @@
       }
 
       function handleLocationError(error) {
-        var message = "Joylashuvni olib bo'lmadi. GPS ruxsatini tekshiring.";
+        var message = "Joylashuvingizni olib bo'lmadi. GPS ruxsatini tekshiring 📍";
         if (error && error.code === 1) {
-          message = "Joylashuvga ruxsat berilmadi. Sozlamalardan ruxsat bering.";
+          message = "Joylashuvga ruxsat berilmadi. Sozlamalardan ruxsat bering, aks holda xaritada ko'rinmaysiz.";
         } else if (error && error.code === 2) {
-          message = "Joylashuv aniqlanmadi. Ochiq joyda qayta urinib ko'ring.";
+          message = "Joylashuv aniqlanmadi. Ochiqroq joyda qayta urinib ko'ring.";
         } else if (error && error.code === 3) {
-          message = "Joylashuvni aniqlash juda uzoq davom etdi.";
+          message = "Joylashuvni aniqlash juda uzoq davom etdi. Qayta urinib ko'ring.";
         }
         toastOnce("geo-" + (error ? error.code : "unknown"), message, "error");
       }
@@ -926,7 +1023,7 @@
           var response = await apiFetch(API.users);
           if (!response.ok) {
             if (response.status !== 401) {
-              toastOnce("users-error", "Do'stlar ro'yxatini yuklab bo'lmadi", "error");
+              toastOnce("users-error", "Xaritadagi odamlarni yuklab bo'lmadi", "error");
             }
             return;
           }
@@ -937,10 +1034,17 @@
             state.me.visibility = data.visibility;
             renderVisibilityOptions();
           }
-          renderUsers(Array.isArray(data.users) ? data.users : []);
+          var users = Array.isArray(data.users) ? data.users : [];
+          var myId = state.me ? state.me.telegram_id : null;
+          state.usersLoaded = true;
+          state.visibleOthers = users.filter(function (item) {
+            return item && item.telegram_id !== myId;
+          }).length;
+          renderUsers(users);
+          renderEmptyState();
         } catch (error) {
           console.error("get_users", error);
-          toastOnce("users-network", "Tarmoq xatosi: do'stlar yangilanmadi", "error");
+          toastOnce("users-network", "Aloqa uzildi — xarita yangilanmadi 📡", "error");
         }
       }
 
@@ -965,20 +1069,20 @@
           });
 
           if (!response.ok) {
-            toast(typeof data.detail === "string" ? data.detail : "Chaqiruv yuborilmadi", "error");
+            toast(typeof data.detail === "string" ? data.detail : "Chaqiruv yuborilmadi 😕", "error");
             haptic("error");
           } else if (data.delivered) {
             var firstName = String(target.full_name || "").trim().split(/\s+/)[0] || "Do'stingiz";
-            toast(firstName + "ga chaqiruv yuborildi ✅");
+            toast(firstName + "ga chaqiruv yuborildi — javobini kuting 👀");
             haptic("success");
             closeSheet();
           } else {
-            toast("Xabar yetkazilmadi — foydalanuvchi botni bloklagan bo'lishi mumkin", "error");
+            toast("Xabar yetkazilmadi — u botni bloklagan bo'lishi mumkin 🙈", "error");
             haptic("warning");
           }
         } catch (error) {
           console.error("ping_user", error);
-          toast("Tarmoq xatosi. Qayta urinib ko'ring", "error");
+          toast("Aloqa uzildi — qayta urinib ko'ring 📡", "error");
         } finally {
           el.pingButton.disabled = false;
           el.pingButton.textContent = originalLabel;
@@ -1020,14 +1124,14 @@
           });
 
           if (!response.ok) {
-            toast(typeof data.detail === "string" ? data.detail : "So'rov yuborilmadi", "error");
+            toast(typeof data.detail === "string" ? data.detail : "So'rov yuborilmadi 😕", "error");
             haptic("error");
             return;
           }
 
           if (data.already_friends || data.request_status === "accepted") {
             target.is_friend = true;
-            toast("Siz allaqachon do'stlarsiz ✅");
+            toast("Siz allaqachon do'stlarsiz 😊");
             haptic("success");
             closeSheet();
             refreshUsers();
@@ -1037,15 +1141,15 @@
 
           state.sentRequests.add(target.telegram_id);
           if (data.delivered === false) {
-            toast("So'rov saqlandi, lekin xabar yetkazilmadi — foydalanuvchi botni bloklagan bo'lishi mumkin", "error");
+            toast("So'rov saqlandi, ammo xabar yetmadi — u botni bloklagan bo'lishi mumkin 🙈", "error");
             haptic("warning");
           } else {
-            toast("Do'stlik so'rovi yuborildi ✅");
+            toast("So'rov ketdi! Do'stingiz tasdiqlashi bilan xaritada ko'rinadi 🚀");
             haptic("success");
           }
         } catch (error) {
           console.error("add_friend", error);
-          toast("Tarmoq xatosi. Qayta urinib ko'ring", "error");
+          toast("Aloqa uzildi — so'rov yuborilmadi, qayta urinib ko'ring 📡", "error");
         } finally {
           state.friendRequestPending = false;
           updateFriendButton();
@@ -1106,7 +1210,7 @@
           if (!response.ok) {
             state.me.visibility = previous;
             renderVisibilityOptions();
-            el.settingsStatus.textContent = "Saqlab bo'lmadi";
+            el.settingsStatus.textContent = "Saqlab bo'lmadi 😕";
             toast(typeof data.detail === "string" ? data.detail : "Sozlamani saqlab bo'lmadi", "error");
             haptic("error");
             return;
@@ -1121,7 +1225,7 @@
           console.error("update_settings", error);
           state.me.visibility = previous;
           renderVisibilityOptions();
-          el.settingsStatus.textContent = "Tarmoq xatosi";
+          el.settingsStatus.textContent = "Aloqa uzildi";
           toast("Sozlamani saqlab bo'lmadi", "error");
         }
       }
@@ -1133,6 +1237,7 @@
         el.friendsModal.classList.add("flex");
         haptic("light");
         refreshFriends();
+        refreshRequests();
       }
 
       function closeFriendsModal() {
@@ -1158,9 +1263,173 @@
           state.friends = Array.isArray(data.friends) ? data.friends : [];
           state.friendsLoaded = true;
           renderFriends();
+          renderEmptyState();
         } catch (error) {
           console.error("get_friends", error);
         }
+      }
+
+      async function refreshRequests() {
+        if (!state.token) {
+          return;
+        }
+        try {
+          var response = await apiFetch(API.requests);
+          if (!response.ok) {
+            if (response.status !== 401) {
+              toastOnce("requests-error", "Kelgan so'rovlarni yuklab bo'lmadi", "error");
+            }
+            return;
+          }
+          var data = await response.json().catch(function () {
+            return {};
+          });
+          state.requests = Array.isArray(data.requests) ? data.requests : [];
+          state.requestsLoaded = true;
+          updateRequestsBadge();
+          renderRequests();
+          renderEmptyState();
+        } catch (error) {
+          console.error("get_requests", error);
+        }
+      }
+
+      function updateRequestsBadge() {
+        var count = state.requests.length;
+        el.requestsBadge.textContent = count > 9 ? "9+" : String(count);
+        el.requestsBadge.classList.toggle("hidden", count === 0);
+        el.requestsBadge.classList.toggle("flex", count > 0);
+      }
+
+      function requestItemHtml(request) {
+        var name = request.full_name || "GeniMap foydalanuvchisi";
+        var meta = request.username ? "@" + request.username : "Sizni do'stlikka chorlayapti";
+        var busy = state.requestBusy.has(String(request.telegram_id));
+        var disabled = busy ? " disabled" : "";
+        return '<li class="flex items-center gap-2.5 rounded-xl bg-gray-900/70 p-2 ring-1 ring-white/5">' +
+          '<img src="' + escapeHtml(avatarFor(request)) + '" alt="" class="h-9 w-9 shrink-0 rounded-full bg-gray-800 object-cover">' +
+          '<div class="min-w-0 flex-1">' +
+          '<p class="truncate text-sm font-bold text-white">' + escapeHtml(name) + '</p>' +
+          '<p class="truncate text-[11px] font-medium text-indigo-200/70">' + escapeHtml(meta) + '</p>' +
+          '</div>' +
+          '<button type="button" data-accept-id="' + escapeHtml(request.telegram_id) + '"' + disabled +
+          ' class="shrink-0 rounded-lg bg-emerald-500/90 px-2.5 py-1.5 text-xs font-extrabold text-gray-950 transition active:scale-95 disabled:opacity-50" aria-label="Qabul qilish">✅</button>' +
+          '<button type="button" data-decline-id="' + escapeHtml(request.telegram_id) + '"' + disabled +
+          ' class="shrink-0 rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-bold text-gray-300 ring-1 ring-white/10 transition active:scale-95 disabled:opacity-50" aria-label="Rad etish">✕</button>' +
+          '</li>';
+      }
+
+      function renderRequests() {
+        el.requestsSection.classList.toggle("hidden", state.requests.length === 0);
+        el.requestsCount.textContent = String(state.requests.length);
+        el.requestsList.innerHTML = state.requests.map(requestItemHtml).join("");
+      }
+
+      async function respondToRequest(senderId, action) {
+        var key = String(senderId);
+        if (state.requestBusy.has(key)) {
+          return;
+        }
+
+        state.requestBusy.add(key);
+        renderRequests();
+
+        try {
+          var response = await apiFetch(action === "accept" ? API.acceptFriend : API.declineFriend, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sender_tg_id: Number(senderId) })
+          });
+          var data = await response.json().catch(function () {
+            return {};
+          });
+
+          if (!response.ok) {
+            toast(typeof data.detail === "string" ? data.detail : "Amalni bajarib bo'lmadi 😕", "error");
+            haptic("error");
+            return;
+          }
+
+          state.requests = state.requests.filter(function (item) {
+            return String(item.telegram_id) !== key;
+          });
+
+          if (action === "accept") {
+            var friendName = data.friend && data.friend.full_name
+              ? String(data.friend.full_name).trim().split(/\s+/)[0]
+              : "Do'stingiz";
+            toast("🎉 " + friendName + " endi do'stingiz — xaritada ko'rinadi");
+            haptic("success");
+            refreshFriends();
+            refreshUsers();
+          } else {
+            toast("So'rov rad etildi 👌");
+            haptic("warning");
+          }
+
+          updateRequestsBadge();
+          renderRequests();
+          renderEmptyState();
+        } catch (error) {
+          console.error("friend request reply", error);
+          toast("Aloqa uzildi — amal bajarilmadi 📡", "error");
+        } finally {
+          state.requestBusy.delete(key);
+          renderRequests();
+        }
+      }
+
+      function hideEmptyCard() {
+        el.emptyCard.classList.add("hidden");
+      }
+
+      function renderEmptyState() {
+        if (!state.usersLoaded || state.emptyDismissed || state.visibleOthers > 0) {
+          hideEmptyCard();
+          return;
+        }
+
+        var visibility = state.me && state.me.visibility ? state.me.visibility : "all";
+        var variant;
+
+        if (visibility === "none") {
+          variant = {
+            emoji: "🚫",
+            title: "Siz xaritada ko'rinmaysiz",
+            text: "«Hech kimga» rejimi yoqilgan — shu sababli siz ham hech kimni ko'rmaysiz.",
+            steps: ["«Hammaga» yoki «Faqat do'stlarga»ni tanlang", "Xarita darhol yangilanadi"]
+          };
+        } else if (state.requests.length > 0) {
+          variant = {
+            emoji: "🔔",
+            title: state.requests.length + " ta do'stlik so'rovi kutmoqda",
+            text: "So'rovni qabul qilsangiz, u darhol xaritada paydo bo'ladi.",
+            steps: ["Do'stlar bo'limini oching", "✅ yoki ✕ bilan javob bering"]
+          };
+        } else if (visibility === "friends" && state.friendsLoaded && state.friends.length === 0) {
+          variant = {
+            emoji: "👥",
+            title: "Hali do'stlaringiz yo'q",
+            text: "«Faqat do'stlarga» rejimidasiz, shuning uchun faqat do'stlaringiz ko'rinadi.",
+            steps: ["Xaritadagi markerni bosing", "«➕ Do'stlikka chorlash»ni tanlang", "Tasdiqlanishini kuting"]
+          };
+        } else {
+          variant = {
+            emoji: "🌍",
+            title: "Atrofingiz hozircha bo'sh",
+            text: "Xarita jonlanishi uchun boshqalar ham joylashuvini ulashishi kerak.",
+            steps: ["Do'stlaringizni taklif qiling", "Joylashuvingiz ulanganini tekshiring"]
+          };
+        }
+
+        el.emptyEmoji.textContent = variant.emoji;
+        el.emptyTitle.textContent = variant.title;
+        el.emptyText.textContent = variant.text;
+        el.emptySteps.innerHTML = variant.steps.map(function (step) {
+          return '<li class="flex items-start gap-2 text-xs leading-snug text-gray-300">' +
+            '<span class="mt-0.5 text-emerald-400">•</span><span>' + escapeHtml(step) + '</span></li>';
+        }).join("");
+        el.emptyCard.classList.remove("hidden");
       }
 
       function friendItemHtml(friend) {
@@ -1197,8 +1466,8 @@
             el.friendsEmpty.textContent = "Do'stlar yuklanmoqda…";
           } else {
             el.friendsEmpty.textContent = state.friends.length === 0
-              ? "Hali do'stlaringiz yo'q. Xaritadagi markerni bosib do'stlik taklif qiling."
-              : "Qidiruv bo'yicha hech kim topilmadi.";
+              ? "Hali do'stlaringiz yo'q 👀 Xaritadagi markerni bosib “➕ Do'stlikka chorlash”ni tanlang."
+              : "Bu ism bo'yicha hech kim topilmadi 🔍";
           }
           el.friendsEmpty.classList.remove("hidden");
         } else {
@@ -1215,7 +1484,7 @@
           return;
         }
         if (typeof friend.lat !== "number" || typeof friend.lng !== "number") {
-          toast("Bu do'stingiz hali joylashuvini yubormagan", "error");
+          toast("Bu do'stingiz hali joylashuvini ulashmagan 📍", "error");
           return;
         }
 
@@ -1225,7 +1494,7 @@
           state.map.flyTo([friend.lat, friend.lng], 16, { duration: 0.9 });
         }
         haptic("medium");
-        toast((friend.full_name || "Do'stingiz") + " joylashuviga uchib borildi 📍");
+        toast((friend.full_name || "Do'stingiz") + " topildi 📍");
       }
 
       function handleVisibilityChange() {
@@ -1234,6 +1503,97 @@
         }
         requestLocation();
         refreshUsers();
+      }
+
+      var ONBOARDING_KEY = "genimap_onboarding_v1";
+      var ONBOARDING_SLIDES = [
+        {
+          emoji: "🗺",
+          title: "Do'stlaringiz qayerda — bir qarashda",
+          text: "GeniMap — oddiy xarita emas: unda siz va do'stlaringiz bor. Joylashuvingizni ulang va yaqinlaringizni real vaqtda ko'ring.",
+          points: [
+            "📍 Markeringiz doim xaritada ko'rinadi",
+            "🔄 Joylashuv har 30 soniyada yangilanadi",
+            "👆 Markerni bossangiz — profil va tugmalar"
+          ]
+        },
+        {
+          emoji: "⚙️",
+          title: "Maxfiylik sizning qo'lingizda",
+          text: "Kim sizni ko'rishini o'zingiz tanlaysiz. Qoida ikkala tomonga ham amal qiladi — siz ko'rmasangiz, sizni ham ko'rmaydi.",
+          points: [
+            "🌍 Hammaga — barcha foydalanuvchilarga ochiq",
+            "🤝 Faqat do'stlarga — faqat tasdiqlangan do'stlar",
+            "🚫 Hech kimga — xaritadan butunlay yo'qolasiz"
+          ]
+        },
+        {
+          emoji: "👥",
+          title: "Do'stlashing va chaqiring",
+          text: "Xaritadagi markerni bosing va «➕ Do'stlikka chorlash»ni tanlang. Do'stingiz tasdiqlasa, bir-biringizni aniq ko'rasiz.",
+          points: [
+            "🔔 Kelgan so'rovlar do'stlar bo'limida va tugmadagi nishonda",
+            "📣 «Qayerdasan?» tugmasi bilan do'stingizni chaqiring"
+          ]
+        }
+      ];
+      var onboardingIndex = 0;
+
+      function onboardingSeen() {
+        try {
+          return window.localStorage.getItem(ONBOARDING_KEY) === "1";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function markOnboardingSeen() {
+        try {
+          window.localStorage.setItem(ONBOARDING_KEY, "1");
+        } catch (error) {
+          /* localStorage yopiq bo'lsa, qo'llanma keyingi ochilishda yana chiqadi */
+        }
+      }
+
+      function renderOnboarding() {
+        var slide = ONBOARDING_SLIDES[onboardingIndex];
+        el.onboardingEmoji.textContent = slide.emoji;
+        el.onboardingTitle.textContent = slide.title;
+        el.onboardingText.textContent = slide.text;
+        el.onboardingPoints.innerHTML = slide.points.map(function (point) {
+          return '<li class="flex items-start gap-2 text-sm leading-snug text-gray-200">' +
+            '<span>' + escapeHtml(point) + '</span></li>';
+        }).join("");
+        el.onboardingDots.innerHTML = ONBOARDING_SLIDES.map(function (item, index) {
+          return '<span class="h-1.5 rounded-full transition-all ' +
+            (index === onboardingIndex ? "w-6 bg-indigo-400" : "w-1.5 bg-white/25") + '"></span>';
+        }).join("");
+        el.onboardingNext.textContent = onboardingIndex === ONBOARDING_SLIDES.length - 1
+          ? "Boshlash 🚀"
+          : "Keyingi";
+      }
+
+      function openOnboarding() {
+        onboardingIndex = 0;
+        renderOnboarding();
+        el.onboarding.classList.remove("hidden");
+        haptic("light");
+      }
+
+      function closeOnboarding() {
+        markOnboardingSeen();
+        el.onboarding.classList.add("hidden");
+      }
+
+      function onboardingNext() {
+        if (onboardingIndex >= ONBOARDING_SLIDES.length - 1) {
+          closeOnboarding();
+          haptic("success");
+          return;
+        }
+        onboardingIndex += 1;
+        renderOnboarding();
+        haptic("light");
       }
 
       function bindUi() {
@@ -1280,6 +1640,38 @@
             closeFriendsModal();
           }
         });
+
+        el.requestsList.addEventListener("click", function (event) {
+          if (!event.target.closest) {
+            return;
+          }
+          var acceptButton = event.target.closest("[data-accept-id]");
+          if (acceptButton) {
+            respondToRequest(acceptButton.getAttribute("data-accept-id"), "accept");
+            return;
+          }
+          var declineButton = event.target.closest("[data-decline-id]");
+          if (declineButton) {
+            respondToRequest(declineButton.getAttribute("data-decline-id"), "decline");
+          }
+        });
+
+        el.emptyFriends.addEventListener("click", function () {
+          state.emptyDismissed = true;
+          hideEmptyCard();
+          openFriendsModal();
+        });
+        el.emptySettings.addEventListener("click", function () {
+          hideEmptyCard();
+          openSettingsModal();
+        });
+        el.emptyClose.addEventListener("click", function () {
+          state.emptyDismissed = true;
+          hideEmptyCard();
+        });
+
+        el.onboardingSkip.addEventListener("click", closeOnboarding);
+        el.onboardingNext.addEventListener("click", onboardingNext);
 
         document.addEventListener("keydown", function (event) {
           if (event.key !== "Escape") {
@@ -1340,6 +1732,10 @@
           }
         }, 80);
 
+        if (!onboardingSeen()) {
+          openOnboarding();
+        }
+
         if (state.me && typeof state.me.lat === "number" && typeof state.me.lng === "number") {
           setSelfMarker(state.me.lat, state.me.lng);
         }
@@ -1347,9 +1743,11 @@
         requestLocation();
         refreshUsers();
         refreshFriends();
+        refreshRequests();
 
         state.timers.push(window.setInterval(requestLocation, 30000));
         state.timers.push(window.setInterval(refreshUsers, 15000));
+        state.timers.push(window.setInterval(refreshRequests, 20000));
       }
 
       start();

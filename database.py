@@ -401,6 +401,46 @@ def get_friends(session: Session, telegram_id: int) -> list[User]:
     )
 
 
+def get_incoming_requests(session: Session, telegram_id: int) -> list[User]:
+    """Joriy foydalanuvchiga kelgan, hali qabul qilinmagan so'rovlarni qaytaradi.
+
+    Faqat `pending` holatdagi va `user_id_2` (qabul qiluvchi) joriy
+    foydalanuvchi bo'lgan so'rovlar olinadi. Tartib — ism bo'yicha.
+    """
+    rows = session.scalars(
+        select(User)
+        .join(Friendship, Friendship.user_id_1 == User.telegram_id)
+        .where(
+            Friendship.user_id_2 == int(telegram_id),
+            Friendship.status == FRIENDSHIP_PENDING,
+        )
+        .order_by(User.full_name.asc())
+    ).all()
+    return list(rows)
+
+
+def decline_friend_request(
+    session: Session, sender_tg_id: int, recipient_tg_id: int
+) -> bool:
+    """`sender_tg_id` → `recipient_tg_id` so'rovini o'chiradi (rad etish).
+
+    Qaytaradi: `True` — so'rov o'chirildi, `False` — `pending` so'rov yo'q.
+    """
+    friendship = session.scalar(
+        select(Friendship).where(
+            Friendship.user_id_1 == int(sender_tg_id),
+            Friendship.user_id_2 == int(recipient_tg_id),
+            Friendship.status == FRIENDSHIP_PENDING,
+        )
+    )
+    if friendship is None:
+        return False
+
+    session.delete(friendship)
+    session.commit()
+    return True
+
+
 def set_user_visibility(session: Session, user: User, visibility: str) -> User:
     """Foydalanuvchining maxfiylik sozlamasini yangilaydi.
 
