@@ -1,0 +1,20 @@
+# GeniMap Telegram Mini App — Python bog'liqliklari
+# O'rnatish: pip install -r requirements.txt
+# Talab: Python 3.11+
+
+# Web backend (FastAPI + ASGI server)
+fastapi==0.115.7
+uvicorn==0.34.0
+
+# Ma'lumotlar modeli va validatsiya
+pydantic==2.13.4
+
+# Ma'lumotlar bazasi (SQLite lokal / PostgreSQL Supabase)
+SQLAlchemy==2.0.37
+psycopg2-binary==2.9.11
+
+# Telegram bot (aiogram 3.x)
+aiogram==3.31.0
+
+# .env faylini o'qish
+python-dotenv==1.0.1
