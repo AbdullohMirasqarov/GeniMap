@@ -75,6 +75,10 @@
       background: rgba(30, 41, 59, 0.95) !important;
     }
 
+    .leaflet-tile {
+      filter: sepia(100%) hue-rotate(185deg) saturate(350%) brightness(0.6) contrast(1.1);
+    }
+
     .gm-icon {
       background: transparent;
       border: none;
@@ -505,7 +509,7 @@
         //   maxZoom: 19,
         //   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> hissadorlari'
         // }).addTo(map);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=cb1_3j2w_1_23440e3f1586c22f54e36b80', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_nolabels/{z}/{x}/{y}.png?key=cb1_3j2w_1_23440e3f1586c22f54e36b80', {
           attribution: '&copy; CARTO',
           subdomains: 'abcd',
           maxZoom: 20
