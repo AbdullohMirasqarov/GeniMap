@@ -1,0 +1,14 @@
+# Maxfiy sozlamalar
+.env
+
+# Lokal ma'lumotlar bazasi
+genimap.db
+genimap.db-journal
+genimap.db-wal
+genimap.db-shm
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/

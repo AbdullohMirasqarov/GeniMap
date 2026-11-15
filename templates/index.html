@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="uz" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#020617">
+  <title>GeniMap — do'stlaringiz qayerda?</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    html, body { height: 100%; }
+    body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+    #map { position: fixed; inset: 0; z-index: 0; background: #0f172a; }
+    .leaflet-container { background: #0f172a; font-family: inherit; }
+    .leaflet-control-attribution {
+      background: rgba(15, 23, 42, 0.75) !important;
+      color: #94a3b8 !important;
+      font-size: 10px !important;
+      padding: 2px 6px !important;
+      border-radius: 6px 0 0 0;
+    }
+    .leaflet-control-attribution a { color: #cbd5e1 !important; }
+    .leaflet-control-zoom { border: none !important; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35) !important; }
+    .leaflet-control-zoom a {
+      background: rgba(15, 23, 42, 0.9) !important;
+      color: #e2e8f0 !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    .leaflet-control-zoom a:hover { background: rgba(30, 41, 59, 0.95) !important; }
+
+    .gm-icon { background: transparent; border: none; }
+
+    .gm-marker { position: relative; width: 56px; height: 56px; }
+    .gm-marker img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 9999px;
+      object-fit: cover;
+      border-style: solid;
+      border-width: 4px;
+      border-color: #6b7280;
+      background: #1f2937;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    }
+    .gm-marker.online img { border-color: #22c55e; }
+    .gm-marker.recent img { border-color: #facc15; }
+    .gm-marker.old img { border-color: #6b7280; filter: grayscale(1); opacity: 0.85; }
+    .gm-marker.self img { border-color: #3b82f6; }
+
+    .gm-dot {
+      position: absolute;
+      right: 0;
+      bottom: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 9999px;
+      background: #22c55e;
+      border: 2px solid #0f172a;
+    }
+    .gm-dot-self { background: #3b82f6; }
+
+    .gm-pulse {
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      border: 2px solid rgba(34, 197, 94, 0.7);
+      animation: gmPulse 2s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .gm-badge {
+      position: absolute;
+      left: 50%;
+      bottom: -16px;
+      transform: translateX(-50%);
+      padding: 1px 6px;
+      border-radius: 9999px;
+      background: #1d4ed8;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    @keyframes gmPulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.75); opacity: 0; }
+    }
+
+    .bottom-sheet {
+      transform: translateY(105%);
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: transform;
+    }
+    .bottom-sheet.open { transform: translateY(0); }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+
+<body class="h-full overflow-hidden bg-gray-950 font-sans text-white antialiased">
+
+  <div id="map" role="application" aria-label="GeniMap xaritasi"></div>
+
+  <header class="pointer-events-none fixed left-0 right-0 top-0 z-[500] px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
+    <div class="flex items-center justify-between gap-3">
+      <div class="pointer-events-auto flex items-center gap-2.5 rounded-2xl bg-gray-900/85 px-3.5 py-2.5 shadow-xl ring-1 ring-white/10 backdrop-blur-md">
+        <span class="text-2xl leading-none">📍</span>
+        <div>
+          <p class="text-sm font-extrabold leading-none tracking-tight">GeniMap</p>
+          <p id="online-count" class="mt-1 text-[11px] font-medium leading-none text-gray-400">Do'stlar yuklanmoqda…</p>
+        </div>
+      </div>
+
+      <div class="pointer-events-auto hidden items-center gap-1.5 rounded-full bg-gray-900/85 px-3 py-2 text-[11px] font-semibold text-gray-300 shadow-lg ring-1 ring-white/10 backdrop-blur-md sm:flex">
+        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+        Jonli xarita
+      </div>
+    </div>
+  </header>
+
+  <button
+    id="ghost-btn"
+    type="button"
+    class="fixed bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 z-[550] flex items-center gap-2 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 px-4 py-3 text-sm font-extrabold text-white shadow-[0_14px_34px_-10px_rgba(168,85,247,0.95)] ring-1 ring-white/25 transition active:scale-95"
+    aria-haspopup="dialog"
+    aria-controls="ghost-modal"
+  >
+    <span class="text-lg leading-none">👻</span>
+    <span>Sharpa Rejimi (Premium)</span>
+  </button>
+
+  <div id="sheet-backdrop" class="fixed inset-0 z-[600] hidden bg-black/50 opacity-0 transition-opacity duration-300"></div>
+
+  <section
+    id="bottom-sheet"
+    class="bottom-sheet fixed bottom-0 left-0 right-0 z-[700] rounded-t-3xl bg-gray-900/95 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] shadow-2xl ring-1 ring-white/10 backdrop-blur-xl"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Foydalanuvchi ma'lumotlari"
+  >
+    <div class="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20"></div>
+
+    <div class="flex items-center gap-4">
+      <img id="sheet-avatar" src="" alt="" class="h-16 w-16 shrink-0 rounded-full border-4 border-gray-700 bg-gray-800 object-cover">
+      <div class="min-w-0 flex-1">
+        <p id="sheet-name" class="truncate text-lg font-extrabold leading-tight text-white">Ism</p>
+        <p id="sheet-username" class="mt-0.5 truncate text-sm font-medium text-gray-400">@username</p>
+        <p id="sheet-last-seen" class="mt-1 text-xs font-medium text-gray-400">Oxirgi marta: hozir</p>
+      </div>
+    </div>
+
+    <button
+      id="ping-btn"
+      type="button"
+      class="mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3.5 text-base font-extrabold text-gray-950 shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] disabled:opacity-60"
+    >
+      Qayerdasan? (Ping) 📣
+    </button>
+
+    <button
+      id="sheet-close"
+      type="button"
+      class="mt-2 w-full rounded-2xl bg-white/5 px-4 py-2.5 text-sm font-semibold text-gray-300 transition hover:bg-white/10 active:scale-[0.99]"
+    >
+      Yopish
+    </button>
+  </section>
+
+  <div
+    id="ghost-modal"
+    class="fixed inset-0 z-[900] hidden items-center justify-center bg-black/70 p-5 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="ghost-title"
+  >
+    <div class="w-full max-w-sm rounded-3xl bg-gradient-to-b from-purple-950/95 to-gray-900 p-6 shadow-2xl ring-1 ring-purple-500/30">
+      <div class="text-center text-5xl leading-none">👻</div>
+      <h2 id="ghost-title" class="mt-4 text-center text-xl font-extrabold text-white">
+        Sharpa Rejimi <span class="text-purple-300">(Premium)</span>
+      </h2>
+      <p class="mt-3 text-center text-sm leading-relaxed text-gray-300">
+        Tez orada! Lokatsiyangizni yashirib, boshqalarni ko'rish funksiyasi tez orada ishga tushadi.
+      </p>
+      <div class="mt-5 space-y-2 rounded-2xl bg-black/25 p-3 text-xs text-purple-200/90 ring-1 ring-white/5">
+        <p class="flex items-center gap-2"><span>🫥</span> Xaritada ko'rinmaslik</p>
+        <p class="flex items-center gap-2"><span>👀</span> Do'stlarni anonim kuzatish</p>
+        <p class="flex items-center gap-2"><span>⚡</span> Premium foydalanuvchilar uchun</p>
+      </div>
+      <button
+        id="ghost-close"
+        type="button"
+        class="mt-5 w-full rounded-2xl bg-white/10 px-4 py-3 text-sm font-bold text-white ring-1 ring-white/15 transition hover:bg-white/15 active:scale-[0.99]"
+      >
+        Tushundim
+      </button>
+    </div>
+  </div>
+
+  <div id="toasts" class="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.75rem)] z-[950] flex w-[min(92vw,26rem)] -translate-x-1/2 flex-col gap-2"></div>
+
+  <div id="boot-overlay" class="fixed inset-0 z-[1000] flex flex-col items-center justify-center gap-4 bg-gray-950 transition-opacity duration-300">
+    <div class="animate-bounce text-5xl leading-none">📍</div>
+    <p class="text-sm font-semibold tracking-wide text-gray-300">GeniMap yuklanmoqda…</p>
+    <div class="h-1 w-40 overflow-hidden rounded-full bg-white/10">
+      <div class="h-full w-1/2 rounded-full bg-emerald-400" style="animation: gmPulse 1.2s ease-in-out infinite;"></div>
+    </div>
+  </div>
+
+  <div id="fatal-overlay" class="fixed inset-0 z-[1001] hidden flex-col items-center justify-center gap-4 bg-gray-950 p-8 text-center">
+    <div class="text-5xl leading-none">🔒</div>
+    <p id="fatal-message" class="max-w-sm text-sm leading-relaxed text-gray-300"></p>
+    <button
+      type="button"
+      onclick="window.location.reload()"
+      class="rounded-xl bg-white/10 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15"
+    >
+      Qayta urinish
+    </button>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+
+      var API = {
+        auth: "/auth",
+        updateLocation: "/update_location",
+        users: "/get_users",
+        ping: "/ping_user"
+      };
+
+      var RING = {
+        online: "border-green-500",
+        recent: "border-yellow-400",
+        old: "border-gray-500 grayscale"
+      };
+
+      var PALETTE = ["#6366f1", "#0ea5e9", "#14b8a6", "#f59e0b", "#ec4899", "#8b5cf6", "#22c55e"];
+
+      var state = {
+        token: null,
+        me: null,
+        map: null,
+        selfMarker: null,
+        friendMarkers: new Map(),
+        sheetUser: null,
+        centered: false,
+        timers: [],
+        toastOnceKeys: new Set()
+      };
+
+      var el = {
+        map: document.getElementById("map"),
+        onlineCount: document.getElementById("online-count"),
+        ghostButton: document.getElementById("ghost-btn"),
+        ghostModal: document.getElementById("ghost-modal"),
+        ghostClose: document.getElementById("ghost-close"),
+        sheet: document.getElementById("bottom-sheet"),
+        sheetBackdrop: document.getElementById("sheet-backdrop"),
+        sheetAvatar: document.getElementById("sheet-avatar"),
+        sheetName: document.getElementById("sheet-name"),
+        sheetUsername: document.getElementById("sheet-username"),
+        sheetLastSeen: document.getElementById("sheet-last-seen"),
+        sheetClose: document.getElementById("sheet-close"),
+        pingButton: document.getElementById("ping-btn"),
+        toasts: document.getElementById("toasts"),
+        bootOverlay: document.getElementById("boot-overlay"),
+        fatalOverlay: document.getElementById("fatal-overlay"),
+        fatalMessage: document.getElementById("fatal-message")
+      };
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function hashString(value) {
+        var hash = 0;
+        var text = String(value || "");
+        for (var index = 0; index < text.length; index += 1) {
+          hash = (hash * 31 + text.charCodeAt(index)) | 0;
+        }
+        return Math.abs(hash);
+      }
+
+      function initialsOf(fullName) {
+        var parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
+        var letters = parts.slice(0, 2).map(function (part) {
+          return part.charAt(0).toUpperCase();
+        }).join("");
+        return letters || "?";
+      }
+
+      function initialsAvatar(fullName) {
+        var label = escapeHtml(initialsOf(fullName));
+        var color = PALETTE[hashString(fullName) % PALETTE.length];
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">' +
+          '<rect width="96" height="96" rx="48" fill="' + color + '"/>' +
+          '<text x="48" y="48" text-anchor="middle" dominant-baseline="central" ' +
+          'font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="700" fill="#ffffff">' + label + '</text>' +
+          '</svg>';
+        return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+      }
+
+      function avatarFor(user) {
+        if (user && typeof user.avatar_url === "string" && user.avatar_url.trim()) {
+          return user.avatar_url.trim();
+        }
+        return initialsAvatar(user ? user.full_name : "");
+      }
+
+      function statusOf(lastUpdated) {
+        var timestamp = Date.parse(lastUpdated || "");
+        if (!Number.isFinite(timestamp)) {
+          return "old";
+        }
+        var ageMinutes = (Date.now() - timestamp) / 60000;
+        if (ageMinutes < 5) {
+          return "online";
+        }
+        if (ageMinutes < 60) {
+          return "recent";
+        }
+        return "old";
+      }
+
+      function formatLastSeen(lastUpdated) {
+        var timestamp = Date.parse(lastUpdated || "");
+        if (!Number.isFinite(timestamp)) {
+          return "noma'lum";
+        }
+        var diffMs = Math.max(0, Date.now() - timestamp);
+        var minutes = Math.floor(diffMs / 60000);
+        if (minutes < 1) {
+          return "hozir";
+        }
+        if (minutes < 60) {
+          return minutes + " daqiqa oldin";
+        }
+        var hours = Math.floor(minutes / 60);
+        if (hours < 24) {
+          return hours + " soat oldin";
+        }
+        var days = Math.floor(hours / 24);
+        if (days < 30) {
+          return days + " kun oldin";
+        }
+        try {
+          return new Date(timestamp).toLocaleDateString("uz-UZ");
+        } catch (error) {
+          return days + " kun oldin";
+        }
+      }
+
+      function haptic(kind) {
+        if (!tg || !tg.HapticFeedback) {
+          return;
+        }
+        if (kind === "success" || kind === "error" || kind === "warning") {
+          tg.HapticFeedback.notificationOccurred(kind);
+        } else {
+          tg.HapticFeedback.impactOccurred(kind === "medium" ? "medium" : "light");
+        }
+      }
+
+      function toast(message, type) {
+        var node = document.createElement("div");
+        node.className = "pointer-events-auto translate-y-2 rounded-2xl px-4 py-3 text-sm font-semibold opacity-0 shadow-2xl ring-1 backdrop-blur-md transition-all duration-300 " +
+          (type === "error"
+            ? "bg-red-500/95 text-white ring-red-300/40"
+            : "bg-gray-900/95 text-gray-100 ring-white/15");
+        node.textContent = message;
+        el.toasts.appendChild(node);
+
+        requestAnimationFrame(function () {
+          node.classList.remove("opacity-0", "translate-y-2");
+        });
+
+        window.setTimeout(function () {
+          node.classList.add("opacity-0", "translate-y-2");
+          window.setTimeout(function () {
+            node.remove();
+          }, 320);
+        }, 3600);
+      }
+
+      function toastOnce(key, message, type) {
+        if (state.toastOnceKeys.has(key)) {
+          return;
+        }
+        state.toastOnceKeys.add(key);
+        toast(message, type);
+      }
+
+      function hideBootOverlay() {
+        el.bootOverlay.classList.add("opacity-0");
+        window.setTimeout(function () {
+          el.bootOverlay.classList.add("hidden");
+          el.bootOverlay.classList.remove("flex");
+        }, 320);
+      }
+
+      function showFatal(message) {
+        hideBootOverlay();
+        el.fatalMessage.textContent = message;
+        el.fatalOverlay.classList.remove("hidden");
+        el.fatalOverlay.classList.add("flex");
+      }
+
+      function initMap() {
+        if (state.map) {
+          return;
+        }
+        var map = L.map("map", {
+          zoomControl: false,
+          attributionControl: true
+        }).setView([41.311081, 69.240562], 12);
+
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> hissadorlari'
+        }).addTo(map);
+
+        L.control.zoom({ position: "bottomleft" }).addTo(map);
+
+        state.map = map;
+        window.setTimeout(function () {
+          map.invalidateSize();
+        }, 120);
+      }
+
+      function makeIcon(html) {
+        return L.divIcon({
+          html: html,
+          className: "gm-icon",
+          iconSize: [56, 56],
+          iconAnchor: [28, 28]
+        });
+      }
+
+      function friendMarkerHtml(user, status) {
+        var source = escapeHtml(avatarFor(user));
+        var ring = RING[status] || RING.old;
+        var pulse = status === "online" ? '<span class="gm-pulse"></span>' : "";
+        var dot = status === "online" ? '<span class="gm-dot"></span>' : "";
+        return '<div class="gm-marker ' + status + '">' + pulse +
+          '<img src="' + source + '" alt="' + escapeHtml(user.full_name) + '" class="border-4 ' + ring + '">' +
+          dot + '</div>';
+      }
+
+      function selfMarkerHtml() {
+        var source = escapeHtml(avatarFor(state.me));
+        return '<div class="gm-marker self">' +
+          '<img src="' + source + '" alt="Siz" class="border-4 border-blue-500">' +
+          '<span class="gm-dot gm-dot-self"></span>' +
+          '<span class="gm-badge">Siz</span>' +
+          '</div>';
+      }
+
+      function setSelfMarker(lat, lng) {
+        if (!state.map) {
+          return;
+        }
+        if (!state.selfMarker) {
+          state.selfMarker = L.marker([lat, lng], {
+            icon: makeIcon(selfMarkerHtml()),
+            zIndexOffset: 1000,
+            interactive: false,
+            keyboard: false
+          }).addTo(state.map);
+        } else {
+          state.selfMarker.setLatLng([lat, lng]);
+          state.selfMarker.setIcon(makeIcon(selfMarkerHtml()));
+        }
+
+        if (!state.centered) {
+          state.map.setView([lat, lng], 15);
+          state.centered = true;
+        }
+      }
+
+      function updateOnlineLabel(onlineCount, locatedCount) {
+        if (locatedCount === 0) {
+          el.onlineCount.textContent = "Atrofingizda hali hech kim yo'q";
+          return;
+        }
+        el.onlineCount.textContent = onlineCount + " onlayn · " + locatedCount + " do'st";
+      }
+
+      function renderUsers(users) {
+        if (!state.map) {
+          return;
+        }
+
+        var alive = new Set();
+        var onlineCount = 0;
+        var locatedCount = 0;
+        var myId = state.me ? state.me.telegram_id : null;
+
+        users.forEach(function (user) {
+          if (!user || user.telegram_id === myId) {
+            return;
+          }
+          if (typeof user.lat !== "number" || typeof user.lng !== "number") {
+            return;
+          }
+
+          locatedCount += 1;
+          var status = statusOf(user.last_updated);
+          if (status === "online") {
+            onlineCount += 1;
+          }
+          alive.add(user.telegram_id);
+
+          var icon = makeIcon(friendMarkerHtml(user, status));
+          var marker = state.friendMarkers.get(user.telegram_id);
+
+          if (marker) {
+            marker.setLatLng([user.lat, user.lng]);
+            marker.setIcon(icon);
+            marker.__user = user;
+          } else {
+            marker = L.marker([user.lat, user.lng], { icon: icon, title: user.full_name }).addTo(state.map);
+            marker.__user = user;
+            marker.on("click", function () {
+              openSheet(marker.__user);
+            });
+            state.friendMarkers.set(user.telegram_id, marker);
+          }
+
+          if (state.sheetUser && state.sheetUser.telegram_id === user.telegram_id) {
+            state.sheetUser = user;
+            renderSheet();
+          }
+        });
+
+        state.friendMarkers.forEach(function (marker, id) {
+          if (!alive.has(id)) {
+            state.map.removeLayer(marker);
+            state.friendMarkers.delete(id);
+          }
+        });
+
+        updateOnlineLabel(onlineCount, locatedCount);
+      }
+
+      function renderSheet() {
+        var user = state.sheetUser;
+        if (!user) {
+          return;
+        }
+        var status = statusOf(user.last_updated);
+        el.sheetAvatar.src = avatarFor(user);
+        el.sheetAvatar.alt = user.full_name || "Foydalanuvchi";
+        el.sheetAvatar.className = "h-16 w-16 shrink-0 rounded-full border-4 bg-gray-800 object-cover " + (RING[status] || RING.old);
+        el.sheetName.textContent = user.full_name || "GeniMap foydalanuvchisi";
+        el.sheetUsername.textContent = user.username ? "@" + user.username : "Username ko'rsatilmagan";
+        el.sheetLastSeen.textContent = "Oxirgi marta: " + formatLastSeen(user.last_updated) +
+          (user.is_ghost ? " · 👻 sharpa rejimida" : "");
+      }
+
+      function openSheet(user) {
+        if (!user) {
+          return;
+        }
+        state.sheetUser = user;
+        renderSheet();
+        el.sheetBackdrop.classList.remove("hidden");
+        requestAnimationFrame(function () {
+          el.sheetBackdrop.classList.add("opacity-100");
+        });
+        el.sheet.classList.add("open");
+        haptic("light");
+      }
+
+      function closeSheet() {
+        if (!el.sheet.classList.contains("open")) {
+          return;
+        }
+        el.sheet.classList.remove("open");
+        el.sheetBackdrop.classList.remove("opacity-100");
+        window.setTimeout(function () {
+          el.sheetBackdrop.classList.add("hidden");
+          state.sheetUser = null;
+        }, 320);
+      }
+
+      function openGhostModal() {
+        el.ghostModal.classList.remove("hidden");
+        el.ghostModal.classList.add("flex");
+        haptic("light");
+      }
+
+      function closeGhostModal() {
+        el.ghostModal.classList.add("hidden");
+        el.ghostModal.classList.remove("flex");
+      }
+
+      async function authenticate(options) {
+        var silent = Boolean(options && options.silent);
+        var initData = tg && typeof tg.initData === "string" ? tg.initData : "";
+
+        if (!initData) {
+          if (!silent) {
+            showFatal("Bu sahifa faqat Telegram ichida ishlaydi. Iltimos, Mini App'ni botdagi “Xaritani ochish” tugmasi orqali oching.");
+          }
+          return false;
+        }
+
+        try {
+          var response = await fetch(API.auth, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ init_data: initData })
+          });
+          var data = await response.json().catch(function () {
+            return {};
+          });
+
+          if (!response.ok || !data.token) {
+            if (!silent) {
+              var detail = typeof data.detail === "string" ? data.detail : "Avtorizatsiyadan o'tib bo'lmadi. Qaytadan urinib ko'ring.";
+              showFatal(detail);
+            }
+            return false;
+          }
+
+          state.token = data.token;
+          state.me = data.user || null;
+          return true;
+        } catch (error) {
+          console.error("auth", error);
+          if (!silent) {
+            showFatal("Serverga ulanib bo'lmadi. Internet aloqasini tekshirib, qayta urinib ko'ring.");
+          }
+          return false;
+        }
+      }
+
+      async function apiFetch(path, options) {
+        var requestOptions = Object.assign({}, options || {});
+        requestOptions.headers = Object.assign({}, (options && options.headers) || {});
+
+        if (state.token) {
+          requestOptions.headers.Authorization = "Bearer " + state.token;
+        }
+
+        var response = await fetch(path, requestOptions);
+
+        if (response.status === 401) {
+          var restored = await authenticate({ silent: true });
+          if (!restored) {
+            showFatal("Sessiya tugadi. Mini App'ni Telegram'dan qaytadan oching.");
+            return response;
+          }
+          requestOptions.headers.Authorization = "Bearer " + state.token;
+          response = await fetch(path, requestOptions);
+        }
+
+        return response;
+      }
+
+      function requestLocation() {
+        if (!state.token) {
+          return;
+        }
+        if (!navigator.geolocation) {
+          toastOnce("no-geo", "Qurilmangiz geolokatsiyani qo'llab-quvvatlamaydi", "error");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(handlePosition, handleLocationError, {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 15000
+        });
+      }
+
+      async function handlePosition(position) {
+        var lat = position.coords.latitude;
+        var lng = position.coords.longitude;
+
+        setSelfMarker(lat, lng);
+
+        try {
+          var response = await apiFetch(API.updateLocation, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lat: lat, lng: lng })
+          });
+
+          if (!response.ok) {
+            return;
+          }
+
+          var data = await response.json().catch(function () {
+            return {};
+          });
+
+          if (data.status === "ignored") {
+            toastOnce("ghost-ignore", "Sharpa rejimi yoqilgan — joylashuv saqlanmadi 👻");
+          }
+        } catch (error) {
+          console.error("update_location", error);
+          toastOnce("location-network", "Joylashuvni serverga yuborib bo'lmadi", "error");
+        }
+      }
+
+      function handleLocationError(error) {
+        var message = "Joylashuvni olib bo'lmadi. GPS ruxsatini tekshiring.";
+        if (error && error.code === 1) {
+          message = "Joylashuvga ruxsat berilmadi. Sozlamalardan ruxsat bering.";
+        } else if (error && error.code === 2) {
+          message = "Joylashuv aniqlanmadi. Ochiq joyda qayta urinib ko'ring.";
+        } else if (error && error.code === 3) {
+          message = "Joylashuvni aniqlash juda uzoq davom etdi.";
+        }
+        toastOnce("geo-" + (error ? error.code : "unknown"), message, "error");
+      }
+
+      async function refreshUsers() {
+        if (!state.token) {
+          return;
+        }
+        try {
+          var response = await apiFetch(API.users);
+          if (!response.ok) {
+            if (response.status !== 401) {
+              toastOnce("users-error", "Do'stlar ro'yxatini yuklab bo'lmadi", "error");
+            }
+            return;
+          }
+          var data = await response.json().catch(function () {
+            return {};
+          });
+          renderUsers(Array.isArray(data.users) ? data.users : []);
+        } catch (error) {
+          console.error("get_users", error);
+          toastOnce("users-network", "Tarmoq xatosi: do'stlar yangilanmadi", "error");
+        }
+      }
+
+      async function sendPing() {
+        var target = state.sheetUser;
+        if (!target) {
+          return;
+        }
+
+        var originalLabel = "Qayerdasan? (Ping) 📣";
+        el.pingButton.disabled = true;
+        el.pingButton.textContent = "Yuborilmoqda…";
+
+        try {
+          var response = await apiFetch(API.ping, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ target_telegram_id: target.telegram_id })
+          });
+          var data = await response.json().catch(function () {
+            return {};
+          });
+
+          if (!response.ok) {
+            toast(typeof data.detail === "string" ? data.detail : "Chaqiruv yuborilmadi", "error");
+            haptic("error");
+          } else if (data.delivered) {
+            var firstName = String(target.full_name || "").trim().split(/\s+/)[0] || "Do'stingiz";
+            toast(firstName + "ga chaqiruv yuborildi ✅");
+            haptic("success");
+            closeSheet();
+          } else {
+            toast("Xabar yetkazilmadi — foydalanuvchi botni bloklagan bo'lishi mumkin", "error");
+            haptic("warning");
+          }
+        } catch (error) {
+          console.error("ping_user", error);
+          toast("Tarmoq xatosi. Qayta urinib ko'ring", "error");
+        } finally {
+          el.pingButton.disabled = false;
+          el.pingButton.textContent = originalLabel;
+        }
+      }
+
+      function handleVisibilityChange() {
+        if (document.visibilityState !== "visible") {
+          return;
+        }
+        requestLocation();
+        refreshUsers();
+      }
+
+      function bindUi() {
+        el.sheetClose.addEventListener("click", closeSheet);
+        el.sheetBackdrop.addEventListener("click", closeSheet);
+        el.pingButton.addEventListener("click", sendPing);
+        el.ghostButton.addEventListener("click", openGhostModal);
+        el.ghostClose.addEventListener("click", closeGhostModal);
+        el.ghostModal.addEventListener("click", function (event) {
+          if (event.target === el.ghostModal) {
+            closeGhostModal();
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key !== "Escape") {
+            return;
+          }
+          closeSheet();
+          closeGhostModal();
+        });
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        window.addEventListener("orientationchange", function () {
+          if (state.map) {
+            window.setTimeout(function () {
+              state.map.invalidateSize();
+            }, 250);
+          }
+        });
+
+        el.sheetAvatar.addEventListener("error", function () {
+          el.sheetAvatar.src = initialsAvatar(state.sheetUser ? state.sheetUser.full_name : "");
+        });
+      }
+
+      async function start() {
+        bindUi();
+        initMap();
+
+        if (tg) {
+          try {
+            tg.ready();
+            tg.expand();
+            if (typeof tg.disableVerticalSwipes === "function") {
+              tg.disableVerticalSwipes();
+            }
+            if (typeof tg.setHeaderColor === "function") {
+              tg.setHeaderColor("#020617");
+            }
+            if (typeof tg.setBackgroundColor === "function") {
+              tg.setBackgroundColor("#020617");
+            }
+          } catch (error) {
+            console.error("telegram webapp", error);
+          }
+        }
+
+        var authorized = await authenticate();
+        if (!authorized) {
+          return;
+        }
+
+        hideBootOverlay();
+        window.setTimeout(function () {
+          if (state.map) {
+            state.map.invalidateSize();
+          }
+        }, 80);
+
+        if (state.me && typeof state.me.lat === "number" && typeof state.me.lng === "number") {
+          setSelfMarker(state.me.lat, state.me.lng);
+        }
+
+        requestLocation();
+        refreshUsers();
+
+        state.timers.push(window.setInterval(requestLocation, 30000));
+        state.timers.push(window.setInterval(refreshUsers, 15000));
+      }
+
+      start();
+    }());
+  </script>
+</body>
+</html>
